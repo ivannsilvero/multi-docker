@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ivannsilvero/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true ivannsilvero/react-test npm test
+
+after_success:
+  - docker build -t ivannsilvero/multi-client ./client
+  - docker build -t ivannsilvero/multi-nginx ./nginx
+  - docker build -t ivannsilvero/multi-server ./server
+  - docker build -t ivannsilvero/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push ivannsilvero/multi-client
+  - docker push ivannsilvero/multi-nginx
+  - docker push ivannsilvero/multi-server
+  - docker push ivannsilvero/multi-worker
